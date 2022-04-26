@@ -7,10 +7,12 @@ from .icons import *
 from .panel import *
 from .op_sync_shapekey import *
 from .op_add_shapekey import *
+from .op_remove_shapekey import *
 from .op_move_shapekey import *
 from .op_sort_shapekey import *
 from .op_reset_shapekey import *
-from .op_remove_shapekey import *
+from .op_rename_shapekey import *
+
 
 bl_info = {
     "name": "Mio3 ShapeKey",
@@ -22,14 +24,6 @@ bl_info = {
     "description": "Synchronize shape keys with the same name in the certain collection.",
     "category": "Object",
 }
-
-
-def callback_sync_active_shapekey_enabled(self, context):
-    if self.sync_active_shapekey_enabled:
-        register_active_shape_key()
-        sync_active_shape_key()
-    else:
-        unregister_active_shape_key()
 
 
 def callback_xmirror_auto_enabled(self, context):
@@ -58,11 +52,8 @@ def callback_move_active_multi(self, context):
 
 
 class MIO3SK_scene_props(PropertyGroup):
-    lastkey: bpy.props.StringProperty()
 
-    sync_active_shapekey_enabled: bpy.props.BoolProperty(
-        default=False, update=callback_sync_active_shapekey_enabled
-    )
+    sync_active_shapekey_enabled: bpy.props.BoolProperty(default=False)
     xmirror_auto_enabled: bpy.props.BoolProperty(default=False, update=callback_xmirror_auto_enabled)
     xmirror_auto_suffix_type: bpy.props.EnumProperty(
         default="_head",
@@ -80,6 +71,13 @@ class MIO3SK_scene_props(PropertyGroup):
 
     sort_priority: bpy.props.BoolProperty()
     sort_priority_mute: bpy.props.BoolProperty()
+
+    rename_inputname: bpy.props.StringProperty()
+    rename_sync_collections: bpy.props.BoolProperty(default=True)
+    rename_search: bpy.props.StringProperty()
+    rename_replace: bpy.props.StringProperty()
+    rename_regex: bpy.props.BoolProperty()
+    rename_replace_sync_collections: bpy.props.BoolProperty(default=True)
 
 
 class MIO3SK_props(bpy.types.PropertyGroup):
@@ -101,7 +99,11 @@ def callback_rename_shapekey():
 
 
 def callback_active_shapekey():
-    bpy.context.scene.mio3sk.lastkey = str(bpy.context.object.active_shape_key.name)
+    prop_s = bpy.context.scene.mio3sk
+    if prop_s.sync_active_shapekey_enabled:
+        sync_active_shape_key()
+    prop_s.rename_inputname = str(bpy.context.object.active_shape_key.name)
+
 
 msgbus_owner = object()
 
@@ -109,6 +111,18 @@ msgbus_owner = object()
 def register_msgbus():
 
     bpy.msgbus.clear_by_owner(msgbus_owner)
+    bpy.msgbus.subscribe_rna(
+        key=(bpy.types.Object, "active_shape_key_index"),
+        owner=msgbus_owner,
+        args=(),
+        notify=callback_active_shapekey,
+    )
+    bpy.msgbus.subscribe_rna(
+        key=(bpy.types.ShapeKey, "name"),
+        owner=msgbus_owner,
+        args=(),
+        notify=callback_rename_shapekey,
+    )
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.ShapeKey, "value"),
         owner=msgbus_owner,
@@ -127,12 +141,6 @@ def register_msgbus():
         args=(),
         notify=callback_show_only_shape_key,
     )
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.Object, "active_shape_key_index"),
-        owner=msgbus_owner,
-        args=(),
-        notify=callback_active_shapekey,
-    )
 
     if load_handler not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(load_handler)
@@ -141,12 +149,9 @@ def register_msgbus():
         prop_s = bpy.context.scene.mio3sk
         if prop_s.xmirror_auto_enabled:
             register_auto_active_mirror_edit()
-        if prop_s.sync_active_shapekey_enabled:
-            register_active_shape_key()
     else:
         # Default=True
         # register_auto_active_mirror_edit()
-        # register_active_shape_key()
         pass
 
 
@@ -161,6 +166,8 @@ classes = [
     MIO3SK_PT_main,
     MIO3SK_PT_sub_move,
     MIO3SK_PT_sub_sort,
+    MIO3SK_PT_sub_rename,
+    MIO3SK_PT_sub_replace,
     MIO3SK_PT_sub_options,
     MIO3SK_MT_context,
     MIO3SK_UL_shape_keys,
@@ -172,6 +179,8 @@ classes = [
     MIO3SK_OT_move,
     MIO3SK_OT_sort,
     MIO3SK_OT_reset,
+    MIO3SK_OT_rename,
+    MIO3SK_OT_replace,
     MIO3SK_OT_remove_shapekey,
 ]
 

@@ -53,7 +53,7 @@ def callback_move_active_multi(self, context):
 
 class MIO3SK_scene_props(PropertyGroup):
 
-    sync_active_shapekey_enabled: bpy.props.BoolProperty(default=False)
+    sync_active_shapekey_enabled: bpy.props.BoolProperty(default=True)
     xmirror_auto_enabled: bpy.props.BoolProperty(default=False, update=callback_xmirror_auto_enabled)
     xmirror_auto_suffix_type: bpy.props.EnumProperty(
         default="_head",
@@ -103,7 +103,6 @@ def callback_active_shapekey():
     if prop_s.sync_active_shapekey_enabled:
         sync_active_shape_key()
     prop_s.rename_inputname = str(bpy.context.object.active_shape_key.name)
-
 
 msgbus_owner = object()
 
@@ -197,7 +196,6 @@ def register():
 
 def unregister():
     bpy.app.handlers.load_post.remove(load_handler)
-    unregister_active_shape_key()
     unregister_auto_active_mirror_edit()
     bpy.msgbus.clear_by_owner(msgbus_owner)
     for c in classes:

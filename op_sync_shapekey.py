@@ -26,22 +26,6 @@ def sync_show_only_shape_key():
                 item.show_only_shape_key = object.show_only_shape_key
 
 
-msgbus_owner_sync_active_shape_key = object()
-
-
-def register_active_shape_key():
-    bpy.msgbus.clear_by_owner(msgbus_owner_sync_active_shape_key)
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.Object, "active_shape_key_index"),
-        owner=msgbus_owner_sync_active_shape_key,
-        args=(),
-        notify=sync_active_shape_key,
-    )
-
-def unregister_active_shape_key():
-    bpy.msgbus.clear_by_owner(msgbus_owner_sync_active_shape_key)
-
-
 def sync_active_shape_key():
     object = bpy.context.object
     prop_o = object.mio3sksync
@@ -49,7 +33,6 @@ def sync_active_shape_key():
         for elem in [o for o in prop_o.syncs.objects if has_shapekey(o) and o != object]:
             index = elem.data.shape_keys.key_blocks.find(object.active_shape_key.name)
             elem.active_shape_key_index = index if index >= 0 else 0
-
 
 
 msgbus_owner_auto_active_mirror_edit = object()

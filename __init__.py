@@ -85,6 +85,8 @@ class MIO3SK_props(bpy.types.PropertyGroup):
         name=bpy.app.translations.pgettext("Sync Collection"), type=bpy.types.Collection
     )
 
+def callback_update_mode():
+    auto_active_mirror_edit()
 
 def callback_update_shapekey():
     sync_shapekey_value()
@@ -110,6 +112,12 @@ msgbus_owner = object()
 def register_msgbus():
 
     bpy.msgbus.clear_by_owner(msgbus_owner)
+    bpy.msgbus.subscribe_rna(
+        key=(bpy.types.Object, "mode"),
+        owner=msgbus_owner,
+        args=(),
+        notify=callback_update_mode,
+    )
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.Object, "active_shape_key_index"),
         owner=msgbus_owner,

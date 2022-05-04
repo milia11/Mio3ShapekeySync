@@ -11,6 +11,8 @@ from .op_move_shapekey import *
 from .op_sort_shapekey import *
 from .op_reset_shapekey import *
 from .op_remove_shapekey import *
+from .op_delete_animkey import *
+from .op_add_animkey import *
 
 
 class MIO3SK_PT_main(Panel):
@@ -59,8 +61,16 @@ class MIO3SK_PT_main(Panel):
         row = layout.row()
         row.label(text="Local:" + str(len(shape_keys.key_blocks)))
         row.label(text="Collection:" + str(len(list(set(collection_keys)))))
+
         # コンテキストメニュー
         row.menu("MIO3SK_MT_context", icon="DOWNARROW_HLT", text="")
+
+        # Animation
+        row = layout.row()
+        row.label(text="Animation Keyframe")
+        row = layout.row()
+        row.operator(MIO3SK_AnimAddKey.bl_idname, icon="KEY_HLT")
+        row.operator(MIO3SK_AnimDeleteKey.bl_idname, icon="KEY_DEHLT")
 
         row = layout.row(align=True)
         row.scale_x = 1.8

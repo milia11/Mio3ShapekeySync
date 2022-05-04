@@ -81,8 +81,9 @@ def callback_update_mode():
     auto_active_mirror_edit()
 
 def callback_update_shapekey():
-    sync_shapekey_value()
-
+    settings = bpy.context.scene.tool_settings
+    update_anim_key = settings.use_keyframe_insert_auto
+    sync_shapekey_value(update_anim_key)
 
 def callback_show_only_shape_key():
     sync_show_only_shape_key()
@@ -172,6 +173,8 @@ classes = [
     MIO3SK_OT_sort,
     MIO3SK_OT_reset,
     MIO3SK_OT_remove_shapekey,
+    MIO3SK_AnimAddKey,
+    MIO3SK_AnimDeleteKey,
 ]
 
 

@@ -3,7 +3,7 @@ from .define import *
 from .op_util import *
 
 
-def sync_shapekey_value():
+def sync_shapekey_value(update_anim_key=False):
     object = bpy.context.object
     prop_o = object.mio3sksync
     if is_sync_collection(object):
@@ -15,6 +15,8 @@ def sync_shapekey_value():
                         item_key.mute = key_blocks[item_key.name].mute
                     if item_key.value != key_blocks[item_key.name].value:
                         item_key.value = key_blocks[item_key.name].value
+                    if update_anim_key:
+                        insert_key(item_key, "value")
 
 
 def sync_show_only_shape_key():
